@@ -1,3 +1,5 @@
+import scala.sys.process.*
+
 // ThisBuild를 사용해 모든 하위 모듈에 Scala 버전을 전역 적용합니다.
 ThisBuild / scalaVersion := "3.8.4"
 
@@ -17,7 +19,7 @@ val catsEffectTestingVersion = "1.8.0"
 
 // 루트 프로젝트 (Maven의 packaging=pom 역할)
 lazy val root = (project in file("."))
-  .aggregate(catalogService /*, orderService 추후 추가 */)
+  .aggregate(catalogService /*, orderService 추후 추가 */ )
   .settings(
     name := "spring-boot-microservices-scala"
   )
@@ -35,6 +37,9 @@ lazy val catalogService = (project in file("catalog-service"))
     // 자동 생성될 스칼라 객체의 패키지명
     buildInfoPackage := "com.endsoullab",
 
+    // 기본값인 BuildInfo 대신 원하는 객체 이름으로 변경
+    buildInfoObject := "BuildInformation",
+
     // 기록할 빌드 정보키 설정
     buildInfoKeys := Seq[BuildInfoKey](
       name,
@@ -44,6 +49,13 @@ lazy val catalogService = (project in file("catalog-service"))
       sbtVersion,
       // 커스텀 빌드 시각 (ISO-8601 포맷)
       "builtAt" -> java.time.Instant.now().toString
+    ),
+    buildInfoKeys ++= Seq[BuildInfoKey](
+      "gitBranch" -> git.gitCurrentBranch.value,
+      "gitCommitId" -> git.gitHeadCommit.value.getOrElse("unknown"),
+      // git log 날짜(+09:00)를 파싱하여 UTC Instant 포맷(Z)으로 변환
+      "gitCommitDate" -> Process("git log -1 --format=%cI").lineStream.headOption
+        .getOrElse("unknown")
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
@@ -60,6 +72,6 @@ lazy val catalogService = (project in file("catalog-service"))
       "org.tpolecat" %% "doobie-core" % doobieVersion,
       "org.tpolecat" %% "doobie-hikari" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
-      "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test,
+      "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test
     )
   )

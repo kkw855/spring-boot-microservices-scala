@@ -1,17 +1,16 @@
 package com.endsoullab.http.routes
 
 import cats.effect.IO
-
 import io.circe.Codec
-
 import org.http4s.*
-import org.http4s.circe.CirceEntityCodec.* // Case Class를 JSON HTTP 응답(EntityEncoder)으로 자동 변환
+import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.*
 import org.http4s.server.*
+import com.endsoullab.BuildInformation
 
-import com.endsoullab.BuildInfo
+import java.time.OffsetDateTime
 
-final case class AppInfoResponse(
+final case class BuildInfo(
     name: String,
     organization: String,
     version: String,
@@ -20,21 +19,39 @@ final case class AppInfoResponse(
     builtAt: String
 ) derives Codec.AsObject
 
+final case class GitInfo(branch: String, commitId: String, commitDate: String)
+    derives Codec.AsObject
+
+final case class AppInfoResponse(
+    build: BuildInfo,
+    git: GitInfo
+) derives Codec.AsObject
+
 object AppInfoResponse {
   // BuildInfo 객체를 DTO로 변환하는 팩토리 메서드
-  def fromBuildInfo: AppInfoResponse = AppInfoResponse(
-    name = BuildInfo.name,
-    organization = BuildInfo.organization,
-    version = BuildInfo.version,
-    scalaVersion = BuildInfo.scalaVersion,
-    sbtVersion = BuildInfo.sbtVersion,
-    builtAt = BuildInfo.builtAt // 커스텀 키
+  def fromBuildInformation: AppInfoResponse = AppInfoResponse(
+    build = BuildInfo(
+      name = BuildInformation.name,
+      organization = BuildInformation.organization,
+      version = BuildInformation.version,
+      scalaVersion = BuildInformation.scalaVersion,
+      sbtVersion = BuildInformation.sbtVersion,
+      builtAt = BuildInformation.builtAt
+    ),
+    git = GitInfo(
+      branch = BuildInformation.gitBranch,
+      commitId = BuildInformation.gitCommitId,
+      commitDate = BuildInformation.gitCommitDate match {
+        case "unknown" => "unknown"
+        case dateStr => OffsetDateTime.parse(dateStr).toInstant.toString
+      }
+    )
   )
 }
 
 class ActuatorRoutes private extends Http4sDsl[IO] {
   private val infoRoute: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root / "info" =>
-    Ok(AppInfoResponse.fromBuildInfo)
+    Ok(AppInfoResponse.fromBuildInformation)
   }
 
   val routes: HttpRoutes[IO] = Router(
