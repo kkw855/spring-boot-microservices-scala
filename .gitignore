@@ -3,6 +3,10 @@
 
 .idea
 
+*secret.raw.yaml
+*secret.unsealed.yaml
+secret-plain.yaml
+
 ### Git ###
 # Created by git for backups. To disable backups in Git:
 # $ git config --global mergetool.keepBackup false

@@ -26,8 +26,12 @@ object AppInfoResponse {
       builtAt: String
   ) derives Codec.AsObject
 
-  final case class GitInfo(branch: String, commitId: String, commitDate: String, commitMessage: String)
-      derives Codec.AsObject
+  final case class GitInfo(
+      branch: String,
+      commitId: String,
+      commitDate: String,
+      commitMessage: String
+  ) derives Codec.AsObject
 
   // BuildInfo 객체를 DTO로 변환하는 팩토리 메서드
   def fromBuildInformation: AppInfoResponse = AppInfoResponse(
