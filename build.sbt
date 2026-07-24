@@ -1,3 +1,5 @@
+import sbtassembly.MergeStrategy
+
 import scala.sys.process.*
 
 // ThisBuild를 사용해 모든 하위 모듈에 Scala 버전을 전역 적용합니다.
@@ -75,5 +77,22 @@ lazy val catalogService = (project in file("catalog-service"))
       "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test,
       "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
       "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingVersion % Test,
-    )
+    ),
+    Compile / run / mainClass := Some("com.endsoullab.Application"),
+    Compile / run / fork := true,
+    Test / fork := true,
+    Test / javaOptions += "-Dapi.version=1.40",
+    assembly / assemblyJarName := "app.jar",
+    assembly / assemblyMergeStrategy := {
+      case PathList("META-INF", "maven", xs @ _*) => MergeStrategy.discard
+      case PathList("META-INF", xs @ _*) =>
+        xs match {
+          case "MANIFEST.MF" :: Nil => MergeStrategy.discard
+            // cats, http4s 등 서비스 로더 파일들을 하나로 합침
+          case "services" :: _ :: Nil => MergeStrategy.concat
+          case _ => MergeStrategy.first
+        }
+      case "reference.conf" => MergeStrategy.concat
+      case x => MergeStrategy.first
+    },
   )

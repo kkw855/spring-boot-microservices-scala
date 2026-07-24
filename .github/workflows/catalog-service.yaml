@@ -57,7 +57,7 @@ jobs:
       - name: Build Scala API Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./catalog-service
+          context: .
           file: ./catalog-service/Dockerfile
           load: true
           tags: |

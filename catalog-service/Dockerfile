@@ -31,8 +31,8 @@ RUN useradd -u 1001 scala-user
 USER scala-user
 
 # 1단계 빌드 컴파일 결과물(Fat JAR)만 가볍게 복사
-# (프로젝트명과 버전은 본인의 build.sbt 설정에 맞게 매칭)
-COPY --from=builder --chown=scala-user:scala-user /app/target/out/jvm/scala-3.8.4/custom-scala-api/app.jar ./app.jar
+# scala-3.8.4 대신 scala-3.* 와일드카드
+COPY --from=builder --chown=scala-user:scala-user /app/catalog-service/target/scala-3.*/app.jar ./app.jar
 
 # 쿠버네티스 컨테이너 환경을 위한 필수 JVM 최적화 옵션 설정
 # - MaxRAMPercentage: 쿠버네티스 파드 메모리 Limit의 75%를 JVM 힙 메모리로 할당 (OOMKilled 방지)
