@@ -52,9 +52,10 @@ lazy val catalogService = (project in file("catalog-service"))
     ),
     buildInfoKeys ++= Seq[BuildInfoKey](
       "gitBranch" -> git.gitCurrentBranch.value,
-      "gitCommitId" -> git.gitHeadCommit.value.getOrElse("unknown"),
+      "gitCommitId" -> git.gitHeadCommit.value.map(_.substring(0, 7)).getOrElse("unknown"),
       // git log 날짜(+09:00)를 파싱하여 UTC Instant 포맷(Z)으로 변환
-      "gitCommitDate" -> Process("git log -1 --format=%cI").lineStream.headOption.getOrElse("unknown")
+      "gitCommitDate" -> Process("git log -1 --format=%cI").lineStream.headOption.getOrElse("unknown"),
+      "gitCommitMessage" -> git.gitHeadMessage.value.getOrElse("unknown")
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
