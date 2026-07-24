@@ -15,7 +15,7 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: arc-runner-set-lab
+    runs-on: arc-runner-bookstore-scala
     permissions:
       contents: write
       issues: write
