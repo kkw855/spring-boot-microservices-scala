@@ -1,33 +1,34 @@
 package com.endsoullab.http.routes
 
 import cats.effect.IO
+
 import io.circe.Codec
+
 import org.http4s.*
 import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.*
 import org.http4s.server.*
+
 import com.endsoullab.BuildInformation
 
-import java.time.OffsetDateTime
-
-final case class BuildInfo(
-    name: String,
-    organization: String,
-    version: String,
-    scalaVersion: String,
-    sbtVersion: String,
-    builtAt: String
-) derives Codec.AsObject
-
-final case class GitInfo(branch: String, commitId: String, commitDate: String)
-    derives Codec.AsObject
-
 final case class AppInfoResponse(
-    build: BuildInfo,
-    git: GitInfo
+    build: AppInfoResponse.BuildInfo,
+    git: AppInfoResponse.GitInfo
 ) derives Codec.AsObject
 
 object AppInfoResponse {
+  final case class BuildInfo(
+      name: String,
+      organization: String,
+      version: String,
+      scalaVersion: String,
+      sbtVersion: String,
+      builtAt: String
+  ) derives Codec.AsObject
+
+  final case class GitInfo(branch: String, commitId: String, commitDate: String)
+      derives Codec.AsObject
+
   // BuildInfo 객체를 DTO로 변환하는 팩토리 메서드
   def fromBuildInformation: AppInfoResponse = AppInfoResponse(
     build = BuildInfo(
@@ -41,10 +42,7 @@ object AppInfoResponse {
     git = GitInfo(
       branch = BuildInformation.gitBranch,
       commitId = BuildInformation.gitCommitId,
-      commitDate = BuildInformation.gitCommitDate match {
-        case "unknown" => "unknown"
-        case dateStr => OffsetDateTime.parse(dateStr).toInstant.toString
-      }
+      commitDate = BuildInformation.gitCommitDate
     )
   )
 }

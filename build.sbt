@@ -54,8 +54,7 @@ lazy val catalogService = (project in file("catalog-service"))
       "gitBranch" -> git.gitCurrentBranch.value,
       "gitCommitId" -> git.gitHeadCommit.value.getOrElse("unknown"),
       // git log 날짜(+09:00)를 파싱하여 UTC Instant 포맷(Z)으로 변환
-      "gitCommitDate" -> Process("git log -1 --format=%cI").lineStream.headOption
-        .getOrElse("unknown")
+      "gitCommitDate" -> Process("git log -1 --format=%cI").lineStream.headOption.getOrElse("unknown")
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
@@ -72,6 +71,8 @@ lazy val catalogService = (project in file("catalog-service"))
       "org.tpolecat" %% "doobie-core" % doobieVersion,
       "org.tpolecat" %% "doobie-hikari" % doobieVersion,
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
-      "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test
+      "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test,
+      "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
+      "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingVersion % Test,
     )
   )
