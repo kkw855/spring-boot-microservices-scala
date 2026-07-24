@@ -41,8 +41,7 @@ jobs:
         uses: sbt/setup-sbt@v1
 
       - name: Run SBT Tests
-        run: sbt test
-        working-directory: ./catalog-service
+        run: sbt "catalog-service/test"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
