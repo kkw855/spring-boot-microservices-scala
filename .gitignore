@@ -6,6 +6,8 @@
 *secret.raw.yaml
 *secret.unsealed.yaml
 secret-plain.yaml
+application.local.conf
+application-local.yaml
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:

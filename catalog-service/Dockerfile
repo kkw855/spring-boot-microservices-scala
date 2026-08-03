@@ -17,7 +17,7 @@ RUN sbt update
 
 # 나머지 소스코드 복사 및 단일 Fat JAR 파일 생성
 COPY . /app
-RUN sbt assembly
+RUN sbt "catalogService/assembly"
 
 # ==========================================
 # 2단계: 런타임 스테이지 (최소한의 가벼운 JRE만 포함)
