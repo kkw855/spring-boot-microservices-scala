@@ -81,6 +81,9 @@ lazy val catalogService = (project in file("catalog-service"))
     Compile / run / mainClass := Some("com.endsoullab.Application"),
     Compile / run / fork := true,
     Test / fork := true,
+    // forked 테스트 JVM의 작업 디렉터리를 catalog-service/가 아닌 저장소 루트로 맞춰
+    // 루트의 .scalafmt.conf 등 상대 경로 리소스를 정상적으로 찾도록 함
+    Test / baseDirectory := (ThisBuild / baseDirectory).value,
     Test / javaOptions += "-Dapi.version=1.40",
     assembly / assemblyJarName := "app.jar",
     assembly / assemblyMergeStrategy := {
