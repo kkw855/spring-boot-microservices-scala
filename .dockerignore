@@ -1,0 +1,9 @@
+.git
+.idea
+.bsp
+.bloop
+.metals
+.scala-build
+target
+project/project
+.DS_Store

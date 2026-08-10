@@ -1,7 +1,5 @@
 import sbtassembly.MergeStrategy
 
-import scala.sys.process.*
-
 // ThisBuild를 사용해 모든 하위 모듈에 Scala 버전을 전역 적용합니다.
 ThisBuild / scalaVersion := "3.8.4"
 
@@ -55,8 +53,7 @@ lazy val catalogService = (project in file("catalog-service"))
     buildInfoKeys ++= Seq[BuildInfoKey](
       "gitBranch" -> git.gitCurrentBranch.value,
       "gitCommitId" -> git.gitHeadCommit.value.map(_.substring(0, 7)).getOrElse("unknown"),
-      // git log 날짜(+09:00)를 파싱하여 UTC Instant 포맷(Z)으로 변환
-      "gitCommitDate" -> Process("git log -1 --format=%cI").lineStream.headOption.getOrElse("unknown"),
+      "gitCommitDate" -> git.gitHeadCommitDate.value.getOrElse("unknown"),
       "gitCommitMessage" -> git.gitHeadMessage.value.getOrElse("unknown")
     ),
     libraryDependencies ++= Seq(
@@ -76,7 +73,7 @@ lazy val catalogService = (project in file("catalog-service"))
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
       "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test,
       "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-      "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingVersion % Test,
+      "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingVersion % Test
     ),
     Compile / run / mainClass := Some("com.endsoullab.Application"),
     Compile / run / fork := true,
@@ -91,11 +88,11 @@ lazy val catalogService = (project in file("catalog-service"))
       case PathList("META-INF", xs @ _*) =>
         xs match {
           case "MANIFEST.MF" :: Nil => MergeStrategy.discard
-            // cats, http4s 등 서비스 로더 파일들을 하나로 합침
+          // cats, http4s 등 서비스 로더 파일들을 하나로 합침
           case "services" :: _ :: Nil => MergeStrategy.concat
-          case _ => MergeStrategy.first
+          case _                      => MergeStrategy.first
         }
       case "reference.conf" => MergeStrategy.concat
-      case x => MergeStrategy.first
-    },
+      case x                => MergeStrategy.first
+    }
   )
