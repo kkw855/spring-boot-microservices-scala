@@ -1,0 +1,11 @@
+# Dockerfile
+FROM arigaio/atlas:latest-alpine
+
+# 💡 [추가] OS 보안 취약점이 패치된 최신 패키지로 전면 업그레이드합니다.
+RUN apk update && apk upgrade --no-cache
+
+# 마이그레이션 파일들을 컨테이너 내부로 복사
+COPY migrations /migrations
+
+# 컨테이너 실행 시 기본 디렉토리를 migrations로 설정
+WORKDIR /migrations

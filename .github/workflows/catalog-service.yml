@@ -86,6 +86,39 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/bookstore/scala/catalog-service:latest            
             ghcr.io/${{ github.repository_owner }}/bookstore/scala/catalog-service:${{ github.sha }}
 
+      # 2️⃣-1 Atlas 마이그레이션 도커 이미지 빌드 (로컬 Docker daemon 로드)
+      - name: Build Atlas Migration Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./catalog-service
+          file: ./catalog-service/Dockerfile.migration
+          load: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:latest            
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:${{ github.sha }}
+
+      # 2️⃣-2 Trivy 이미지 취약점 검사 (Atlas 마이그레이션 이미지)
+      - name: Run Trivy vulnerability scanner on Atlas Migration image
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0 (SHA 고정 - 공급망 공격 이력 때문에 master 태그 미사용)
+        with:
+          image-ref: 'ghcr.io/${{ github.repository_owner }}//bookstore/scala/atlas-migrations:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1' # 💡 취약점 발견 시 워크플로우를 중단하려면 '1'로 변경하세요.
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      # 2️⃣-3 Atlas 마이그레이션 도커 이미지 푸시
+      - name: Push Atlas Migration Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./custom-scala-api
+          file: ./custom-scala-api/Dockerfile.migration
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:latest            
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:${{ github.sha }}
+
       # [수정 단계] GitOps 레포지토리 업데이트 (deployment 및 migration-job 둘 다 패치)
       - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # GitOps 레포지토리 업데이트 (💡 PR 실행 방지조건 및 단일 GitOps 폴더 경로 적용)
         name: Update GitOps repository
@@ -106,11 +139,12 @@ jobs:
 
           # ARC 러너는 항상 Linux 환경이므로 일반 sed 실행
           sed -i "s|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/catalog-service:.*|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/catalog-service:${{ github.sha }}|g" $TARGET_FILE
+          sed -i "s|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:.*|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:${{ github.sha }}|g" apps/scala/catalog-service/migration-job.yml
           
           # Git 커밋 및 동시성 충돌 방지 일반 푸시
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add $TARGET_FILE
+          git add $TARGET_FILE apps/scala/catalog-service/migration-job.yml
           git commit -m "Update Scala Catalog Service image to ${{ github.sha }}"
           
           # 다른 서비스 커밋과의 충돌 방지를 위한 rebase 후 push
