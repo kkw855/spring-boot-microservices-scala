@@ -90,7 +90,7 @@ jobs:
       - name: Build Atlas Migration Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./catalog-service
+          context: .
           file: ./catalog-service/Dockerfile.migration
           load: true
           tags: |
@@ -112,8 +112,8 @@ jobs:
       - name: Push Atlas Migration Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./custom-scala-api
-          file: ./custom-scala-api/Dockerfile.migration
+          context: .
+          file: ./catalog-service/Dockerfile.migration
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:latest            
