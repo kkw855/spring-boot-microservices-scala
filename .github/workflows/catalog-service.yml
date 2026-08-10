@@ -101,7 +101,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on Atlas Migration image
         uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0 (SHA 고정 - 공급망 공격 이력 때문에 master 태그 미사용)
         with:
-          image-ref: 'ghcr.io/${{ github.repository_owner }}//bookstore/scala/atlas-migrations:${{ github.sha }}'
+          image-ref: 'ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:${{ github.sha }}'
           format: 'table'
           exit-code: '1' # 💡 취약점 발견 시 워크플로우를 중단하려면 '1'로 변경하세요.
           ignore-unfixed: true
