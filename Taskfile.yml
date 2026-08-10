@@ -1,0 +1,41 @@
+version: '3'
+
+vars:
+  GOOS: "{{default OS .GOOS}}"
+  MVNW: '{{if eq .GOOS "windows"}}mvnw.cmd{{else}}./mvnw{{end}}'
+  SLEEP_CMD: '{{if eq .GOOS "windows"}}timeout{{else}}sleep{{end}}'
+  SBT: sbt
+
+tasks:
+  default:
+    cmds:
+      - task: test
+
+  test:
+    deps: [format-check]
+    cmds:
+      - "{{.SBT}} clean test package"
+
+  format:
+    desc: Scala 코드 포맷 적용
+    cmds:
+      - "{{.SBT}} scalafmtAll scalafmtSbt"
+
+  format-check:
+    desc: Scala 코드 포맷 검사
+    cmds:
+      - "{{.SBT}} scalafmtCheckAll scalafmtSbtCheck"
+
+  build:
+    cmds:
+      - "{{.SBT}} clean compile"
+
+  print-vars:
+    desc: 현재 Taskfile 변수 출력
+    silent: true
+    cmds:
+      - | 
+        echo "GOOS={{.GOOS}}"
+        echo "MVNW={{.MVNW}}"
+        echo "SLEEP_CMD={{.SLEEP_CMD}}"
+        echo "SBT={{.SBT}}"

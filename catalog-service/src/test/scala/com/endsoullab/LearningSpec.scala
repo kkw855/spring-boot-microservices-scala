@@ -3,9 +3,9 @@ package com.endsoullab
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 
+import org.scalatest.OptionValues.*
 import org.scalatest.freespec.AsyncFreeSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.OptionValues.*
 
 import scala.sys.process.*
 
@@ -36,7 +36,7 @@ class LearningSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers {
     "String" in {
       val commitId = "f7ec3e12446164564ed422da5908ea54746fea90"
       val shortId = commitId.substring(0, 7)
-      
+
       shortId shouldBe "f7ec3e1"
     }
   }

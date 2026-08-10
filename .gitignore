@@ -8,6 +8,7 @@
 secret-plain.yaml
 application.local.conf
 application-local.yaml
+application-local.yml
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:

@@ -1,4 +1,4 @@
-name: Scala API CI/CD Pipeline
+name: Catalog Service
 
 on:
   workflow_dispatch: # 💡 수동 실행(Run workflow 버튼) 트리거 허용
