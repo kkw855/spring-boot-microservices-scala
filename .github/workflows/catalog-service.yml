@@ -120,8 +120,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/bookstore/scala/atlas-migrations:${{ github.sha }}
 
       # [수정 단계] GitOps 레포지토리 업데이트 (deployment 및 migration-job 둘 다 패치)
-      - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # GitOps 레포지토리 업데이트 (💡 PR 실행 방지조건 및 단일 GitOps 폴더 경로 적용)
-        name: Update GitOps repository
+      - name: Update GitOps repository
         shell: bash
         env:
           GIT_TOKEN: ${{ secrets.GITOPS_PAT }}
@@ -145,7 +144,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add $TARGET_FILE apps/scala/catalog-service/migration-job.yml
-          git commit -m "Update Scala Catalog Service image to ${{ github.sha }}"
+          git commit -m "Update Scala Catalog Service & Atlas Migration image to ${{ github.sha }}"
           
           # 다른 서비스 커밋과의 충돌 방지를 위한 rebase 후 push
           git pull --rebase origin main
