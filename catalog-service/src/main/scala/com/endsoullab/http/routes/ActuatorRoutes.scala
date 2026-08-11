@@ -58,7 +58,7 @@ class ActuatorRoutes private extends Http4sDsl[IO] {
   }
 
   val routes: HttpRoutes[IO] = Router(
-    "/" -> infoRoute
+    "/actuator" -> infoRoute
   )
 }
 
