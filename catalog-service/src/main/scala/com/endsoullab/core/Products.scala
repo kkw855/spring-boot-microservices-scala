@@ -17,7 +17,7 @@ trait Products {
 class LiveProducts private (xa: Transactor[IO]) extends Products {
   override def get(page: Int, size: Int = 10): IO[PagedResult[Product]] = {
     val offset = page * size
-    
+
     val dataQuery =
       sql"""
         SELECT

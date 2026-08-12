@@ -16,6 +16,7 @@ val redis4cats = "2.0.5"
 val testcontainersScalaVersion = "0.44.1"
 val scalaTestVersion = "3.2.20"
 val catsEffectTestingVersion = "1.8.0"
+val flywayVersion = "11.20.3"
 
 // 루트 프로젝트 (Maven의 packaging=pom 역할)
 lazy val root = (project in file("."))
@@ -73,7 +74,11 @@ lazy val catalogService = (project in file("catalog-service"))
       "org.tpolecat" %% "doobie-postgres" % doobieVersion,
       "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test,
       "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-      "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingVersion % Test
+      "org.typelevel" %% "cats-effect-testing-scalatest" % catsEffectTestingVersion % Test,
+      "com.dimafeng" %% "testcontainers-scala-scalatest" % testcontainersScalaVersion % Test,
+      "com.dimafeng" %% "testcontainers-scala-postgresql" % testcontainersScalaVersion % Test,
+      "org.flywaydb" % "flyway-core" % flywayVersion % Test,
+      "org.flywaydb" % "flyway-database-postgresql" % flywayVersion % Test
     ),
     Compile / run / mainClass := Some("com.endsoullab.Application"),
     Compile / run / fork := true,

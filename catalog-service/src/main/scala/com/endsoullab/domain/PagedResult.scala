@@ -25,7 +25,7 @@ object PagedResult {
       isFirst = page == 0,
       isLast = page == totalPages - 1,
       hasNext = page < totalPages - 1,
-      hasPrevious = page > 0
+      hasPrevious = page > 0 && page < totalPages
     )
   }
 }

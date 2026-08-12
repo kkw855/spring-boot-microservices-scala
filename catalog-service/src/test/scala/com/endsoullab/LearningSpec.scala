@@ -1,19 +1,30 @@
 package com.endsoullab
 
 import cats.data.NonEmptyList
-import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
-
+import cats.effect.{IO, Resource}
 import org.scalatest.OptionValues.*
 import org.scalatest.freespec.AsyncFreeSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.io.{BufferedSource, Source}
 import scala.sys.process.*
 
 class LearningSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers {
   case class Item(id: Int, title: String)
 
   "Learning Spec" - {
+    "Source" in {
+      val resource: Resource[IO, BufferedSource] = Resource.fromAutoCloseable(
+        IO.blocking(Source.fromFile("catalog-service/test-data.sql", "UTF-8"))
+      )
+
+      resource.use(bufferedSource => IO.blocking(bufferedSource.getLines().toList)).asserting { lines =>
+        lines should have size 28
+        lines.head shouldBe "-- noinspection SqlNoDataSourceInspectionForFile"
+      }
+    }
+
     "Nel" in {
       val numbers: NonEmptyList[Int] = NonEmptyList.of(1, 2, 3, 4, 5)
 

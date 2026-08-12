@@ -1,0 +1,28 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+-- 페이지네이션 테스트용 더미 데이터 (25건 = size 10 기준 3페이지: 10 + 10 + 5)
+insert into products(code, name, description, image_url, price) values
+('D001', 'Dummy Product 01', 'Description for dummy product 01', 'https://example.com/images/d001.jpg', 10.00),
+('D002', 'Dummy Product 02', 'Description for dummy product 02', 'https://example.com/images/d002.jpg', 11.00),
+('D003', 'Dummy Product 03', 'Description for dummy product 03', 'https://example.com/images/d003.jpg', 12.00),
+('D004', 'Dummy Product 04', 'Description for dummy product 04', 'https://example.com/images/d004.jpg', 13.00),
+('D005', 'Dummy Product 05', 'Description for dummy product 05', 'https://example.com/images/d005.jpg', 14.00),
+('D006', 'Dummy Product 06', 'Description for dummy product 06', 'https://example.com/images/d006.jpg', 15.00),
+('D007', 'Dummy Product 07', 'Description for dummy product 07', 'https://example.com/images/d007.jpg', 16.00),
+('D008', 'Dummy Product 08', 'Description for dummy product 08', 'https://example.com/images/d008.jpg', 17.00),
+('D009', 'Dummy Product 09', 'Description for dummy product 09', 'https://example.com/images/d009.jpg', 18.00),
+('D010', 'Dummy Product 10', 'Description for dummy product 10', 'https://example.com/images/d010.jpg', 19.00),
+('D011', 'Dummy Product 11', 'Description for dummy product 11', 'https://example.com/images/d011.jpg', 20.00),
+('D012', 'Dummy Product 12', 'Description for dummy product 12', 'https://example.com/images/d012.jpg', 21.00),
+('D013', 'Dummy Product 13', 'Description for dummy product 13', 'https://example.com/images/d013.jpg', 22.00),
+('D014', 'Dummy Product 14', 'Description for dummy product 14', 'https://example.com/images/d014.jpg', 23.00),
+('D015', 'Dummy Product 15', 'Description for dummy product 15', 'https://example.com/images/d015.jpg', 24.00),
+('D016', 'Dummy Product 16', 'Description for dummy product 16', 'https://example.com/images/d016.jpg', 25.00),
+('D017', 'Dummy Product 17', 'Description for dummy product 17', 'https://example.com/images/d017.jpg', 26.00),
+('D018', 'Dummy Product 18', 'Description for dummy product 18', 'https://example.com/images/d018.jpg', 27.00),
+('D019', 'Dummy Product 19', 'Description for dummy product 19', 'https://example.com/images/d019.jpg', 28.00),
+('D020', 'Dummy Product 20', 'Description for dummy product 20', 'https://example.com/images/d020.jpg', 29.00),
+('D021', 'Dummy Product 21', 'Description for dummy product 21', 'https://example.com/images/d021.jpg', 30.00),
+('D022', 'Dummy Product 22', 'Description for dummy product 22', 'https://example.com/images/d022.jpg', 31.00),
+('D023', 'Dummy Product 23', 'Description for dummy product 23', 'https://example.com/images/d023.jpg', 32.00),
+('D024', 'Dummy Product 24', 'Description for dummy product 24', 'https://example.com/images/d024.jpg', 33.00),
+('D025', 'Dummy Product 25', 'Description for dummy product 25', null, 34.00);
