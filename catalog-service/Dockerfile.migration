@@ -1,5 +1,8 @@
 # Dockerfile
 FROM flyway/flyway:11-alpine
 
+# 💡 OS 보안 취약점이 패치된 최신 패키지로 전면 업그레이드합니다.
+RUN apk update && apk upgrade --no-cache
+
 # 마이그레이션 파일들을 Flyway 기본 스캔 경로에 복사
 COPY migrations /flyway/sql
