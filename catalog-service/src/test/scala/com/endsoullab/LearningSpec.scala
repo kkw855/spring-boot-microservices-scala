@@ -1,5 +1,6 @@
 package com.endsoullab
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 
@@ -13,6 +14,34 @@ class LearningSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers {
   case class Item(id: Int, title: String)
 
   "Learning Spec" - {
+    "Nel" in {
+      val numbers: NonEmptyList[Int] = NonEmptyList.of(1, 2, 3, 4, 5)
+
+      val normalList = List(1, 2, 3)
+      val emptyList = List.empty[Int]
+
+      val maybeNel1: Option[NonEmptyList[Int]] = NonEmptyList.fromList(normalList)
+      val maybeNel2: Option[NonEmptyList[Int]] = NonEmptyList.fromList(emptyList)
+
+      import cats.implicits.* // maximum
+
+      numbers.reduce shouldBe 15
+      numbers.maximum shouldBe 5
+
+      maybeNel1 shouldBe Some(NonEmptyList.of(1, 2, 3))
+      maybeNel2 shouldBe None
+    }
+
+    "math" in {
+      math.ceil(2.0) shouldBe 2.0
+      math.ceil(2.1) shouldBe 3.0
+      math.ceil(2.5) shouldBe 3.0
+
+      // Long / Int 같은 정수끼리의 나눗셈은 정수 나눗셈이라 소수점 이하가 그냥 버려짐
+      math.ceil(25 / 10) shouldBe 2.0
+      math.ceil(25.toDouble / 10) shouldBe 3.0
+    }
+
     "Process" in {
       val ioProgram: IO[Option[String]] = IO.blocking {
         // .headOption이나 .toList처럼 실제 I/O를 수행하여 값을 확정 짓는 연산까지 IO.blocking 내부에서 처리
