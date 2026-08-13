@@ -66,6 +66,7 @@ lazy val catalogService = (project in file("catalog-service"))
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureConfigVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-fs2" % circeFs2Version,
+      "io.circe" %% "circe-literal" % circeVersion,
       "org.http4s" %% "http4s-ember-server" % http4sVersion,
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-circe" % http4sVersion,
