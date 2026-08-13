@@ -7,11 +7,12 @@ import cats.implicits.*
 import doobie.Transactor
 import doobie.implicits.*
 
-import com.endsoullab.domain.PagedResult
+import com.endsoullab.domain.page.*
 import com.endsoullab.domain.product.*
 
 trait Products {
   def get(page: Int, limit: Int = 10): IO[PagedResult[Product]]
+  def find(code: String): IO[Option[Product]]
 }
 
 class LiveProducts private (xa: Transactor[IO]) extends Products {
@@ -44,6 +45,23 @@ class LiveProducts private (xa: Transactor[IO]) extends Products {
       .map { case (data, totalElements) =>
         PagedResult(data, totalElements, page, size)
       }
+  }
+
+  override def find(code: String): IO[Option[Product]] = {
+    sql"""
+      SELECT
+        id,
+        code,
+        name,
+        description,
+        image_url,
+        price
+      FROM products
+      WHERE code = $code    
+    """
+      .query[Product]
+      .option
+      .transact(xa)
   }
 }
 
