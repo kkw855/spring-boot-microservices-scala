@@ -25,7 +25,7 @@ class ProductsSpec
 
   "LiveProducts" - {
     "get" - {
-      "첫 번째 페이지를 조회한다" in withProducts { products =>
+      "0번째 페이지를 조회하면 처음 10건을 반환한다" in withProducts { products =>
         for {
           pagedResult <- products.get(0)
         } yield {
@@ -40,7 +40,7 @@ class ProductsSpec
         }
       }
 
-      "세 번째 페이지를 조회한다" in withProducts { products =>
+      "마지막 페이지를 조회하면 남은 5건만 반환한다" in withProducts { products =>
         for {
           pagedResult <- products.get(2)
         } yield {
@@ -55,7 +55,7 @@ class ProductsSpec
         }
       }
 
-      "존재하지 않는 페이지를 조회한다" in withProducts { products =>
+      "범위를 벗어난 페이지를 조회하면 빈 목록을 반환한다" in withProducts { products =>
         for {
           pagedResult <- products.get(5)
         } yield {
@@ -72,7 +72,7 @@ class ProductsSpec
     }
 
     "find" - {
-      "존재하는 제품 코드를 조회한다" in withProducts { products =>
+      "존재하는 제품 코드로 조회하면 해당 제품을 반환한다" in withProducts { products =>
         for {
           maybeProduct <- products.find("D001")
         } yield {
@@ -80,11 +80,11 @@ class ProductsSpec
         }
       }
 
-      "존재하지 않는 제품 코드를 조회한다" in withProducts { products =>
+      "존재하지 않는 제품 코드로 조회하면 None을 반환한다" in withProducts { products =>
         for {
-          maybeProduct <- products.find("D001")
+          maybeProduct <- products.find("NOT_EXIST")
         } yield {
-          maybeProduct shouldBe Some(product1)
+          maybeProduct shouldBe None
         }
       }
     }

@@ -2,6 +2,7 @@ package com.endsoullab.http.routes
 
 import cats.effect.testing.scalatest.AsyncIOSpec
 import cats.effect.{IO, Ref}
+import cats.implicits.*
 
 import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.implicits.*
@@ -14,7 +15,7 @@ import com.endsoullab.core.Products
 import com.endsoullab.domain.page.*
 import com.endsoullab.domain.product.*
 import com.endsoullab.fixtures.ProductFixture
-import com.endsoullab.http.responses.FailureResponse
+import com.endsoullab.http.responses.{FailureResponse, ProblemDetail}
 
 final case class PaginationArgs(page: Int, limit: Int)
 
@@ -44,7 +45,11 @@ class ProductRoutesSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers wit
       getHistoryRef.set(PaginationArgs(page, limit)) >> pagedResultIO
     }
 
-    override def find(code: String): IO[Option[Product]] = ???
+    override def find(code: String): IO[Option[Product]] =
+      if (code == "D100")
+        IO.pure(Some(product1))
+      else
+        IO.none[Product]
   }
 
   private def badRequestFor(pageValue: String, expectedError: String) =
@@ -84,9 +89,36 @@ class ProductRoutesSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers wit
       "page 파라미터가 정수가 아니면 400 Bad Request를 반환한다" in
         badRequestFor("a1b2c", "page 파라미터는 정수(Int) 형식이어야 합니다")
     }
-    
+
     "GET /products/{id}" - {
-      
+      "존재하는 코드로 조회한다" in {
+        for {
+          getHistoryRef <- IO.ref(PaginationArgs(0, 0))
+          productRoutes <- IO(ProductRoutes(new ProductsStub(getHistoryRef)).routes)
+          response <- productRoutes.orNotFound.run(
+            Request(method = Method.GET, uri = uri"/products" / "D100")
+          )
+          retrieved <- response.as[Product]
+        } yield {
+          response.status shouldBe Status.Ok
+          retrieved shouldBe product1
+        }
+      }
+
+      "존재하지 않는 코드로 조회한다" in {
+        for {
+          getHistoryRef <- IO.ref(PaginationArgs(0, 0))
+          productRoutes <- IO(ProductRoutes(new ProductsStub(getHistoryRef)).routes)
+          response <- productRoutes.orNotFound.run(
+            Request(method = Method.GET, uri = uri"/products" / "invalid_code")
+          )
+          retrieved <- response.as[ProblemDetail.ProblemDetail]
+        } yield {
+          response.status shouldBe Status.NotFound
+          retrieved.title shouldBe "Product Not Found"
+          retrieved.detail shouldBe "Product with code 'invalid_code' not found".some
+        }
+      }
     }
   }
 }
