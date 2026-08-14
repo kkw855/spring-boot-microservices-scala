@@ -17,7 +17,7 @@ RUN sbt update
 
 # 나머지 소스코드 복사 및 단일 Fat JAR 파일 생성
 COPY . /app
-RUN sbt "catalogService/assembly"
+RUN sbt "orderService/assembly"
 
 # ==========================================
 # 2단계: 런타임 스테이지 (최소한의 가벼운 JRE만 포함)
@@ -32,7 +32,7 @@ USER scala-user
 
 # 1단계 빌드 컴파일 결과물(Fat JAR)만 가볍게 복사
 # scala-3.8.4 대신 scala-3.* 와일드카드
-COPY --from=builder --chown=scala-user:scala-user /app/catalog-service/target/scala-3.*/app.jar ./app.jar
+COPY --from=builder --chown=scala-user:scala-user /app/order-service/target/scala-3.*/app.jar ./app.jar
 
 # 쿠버네티스 컨테이너 환경을 위한 필수 JVM 최적화 옵션 설정
 # - MaxRAMPercentage: 쿠버네티스 파드 메모리 Limit의 75%를 JVM 힙 메모리로 할당 (OOMKilled 방지)
@@ -41,7 +41,7 @@ ENV JAVA_OPTS="-XX:+ExitOnOutOfMemoryError \
                -XX:MaxRAMPercentage=75.0"
 
 # 애플리케이션 포트 개방 (예: Http4s 서버 포트)
-EXPOSE 5021
+EXPOSE 5022
 
 # 실행 명령
 ENTRYPOINT exec java $JAVA_OPTS -jar app.jar

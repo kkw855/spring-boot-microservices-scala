@@ -1,0 +1,151 @@
+name: Catalog Service
+
+on:
+  workflow_dispatch: # 💡 수동 실행(Run workflow 버튼) 트리거 허용
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'order-service/**' # 💡 중요: 스칼라 프로젝트 폴더 내부가 변경될 때만 독립적으로 실행됨
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'order-service/**'
+
+jobs:
+  build-and-push:
+    runs-on: arc-runner-set-books-scala
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # 최신 안정 버전인 v4 사용 권장
+        with:
+          fetch-depth: 0
+
+      # 도커 빌드 전에 GHA 러너단에서 테스트 코드를 먼저 수행
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21' # 사용 중이신 Java 버전에 맞춰 변경 (17, 21 등)
+          cache: 'sbt' # 💡 핵심: sbt 라이브러리와 컴파일 캐시를 유지해 속도를 끌어올립니다.
+
+      # 💡 [추가] ARC 셀프 호스트 러너 환경에 sbt CLI 도구를 자동으로 설치합니다.
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
+
+      - name: Run SBT Tests
+        run: sbt "orderService/test"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 1️⃣-1 스칼라 API 애플리케이션 도커 이미지 빌드 (로컬 Docker daemon 로드)
+      - name: Build Scala API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./order-service/Dockerfile
+          load: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-service:latest            
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-service:${{ github.sha }}
+
+      # 1️⃣-2 Trivy 이미지 취약점 검사 (스칼라 API 이미지)
+      - name: Run Trivy vulnerability scanner on Scala API image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-service:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1' # 💡 취약점 발견 시 워크플로우를 중단하려면 '1'로 변경하세요.
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      # 1️⃣-3 스칼라 API 애플리케이션 도커 이미지 푸시
+      - name: Push Scala API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./order-service/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-service:latest            
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-service:${{ github.sha }}
+
+      # 2️⃣-1 Flyway 마이그레이션 도커 이미지 빌드 (로컬 Docker daemon 로드)
+      - name: Build Flyway Migration Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./order-service
+          file: ./order-service/Dockerfile.migration
+          load: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-flyway-migrations:latest
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-flyway-migrations:${{ github.sha }}
+
+      # 2️⃣-2 Trivy 이미지 취약점 검사 (Flyway 마이그레이션 이미지)
+      - name: Run Trivy vulnerability scanner on Flyway Migration image
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0 (SHA 고정 - 공급망 공격 이력 때문에 master 태그 미사용)
+        with:
+          image-ref: 'ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-flyway-migrations:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1' # 💡 취약점 발견 시 워크플로우를 중단하려면 '1'로 변경하세요.
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      # 2️⃣-3 Flyway 마이그레이션 도커 이미지 푸시
+      - name: Push Flyway Migration Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./order-service
+          file: ./order-service/Dockerfile.migration
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-flyway-migrations:latest
+            ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-flyway-migrations:${{ github.sha }}
+
+      # [수정 단계] GitOps 레포지토리 업데이트 (deployment 및 migration-job 둘 다 패치)
+      - name: Update GitOps repository
+        shell: bash
+        env:
+          GIT_TOKEN: ${{ secrets.GITOPS_PAT }}
+        run: |
+          git config --global credential.helper store
+          echo "https://${GIT_TOKEN}:x-oauth-basic@github.com" > ~/.git-credentials
+          
+          rm -rf gitops
+          git clone https://github.com/kkw855/bookstore-gitops.git gitops
+          cd gitops
+
+          # 💡 단일 GitOps 저장소 구조 경로 (apps/bookstore-scala/order-service/deployment.yaml)
+          # 만약 파일 위치가 다르면 아래 TARGET_FILE 경로만 수정해 주세요.
+          TARGET_FILE="apps/bookstore-scala/order-service/deployment.yaml"
+
+          # ARC 러너는 항상 Linux 환경이므로 일반 sed 실행
+          sed -i "s|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-service:.*|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/order-service:${{ github.sha }}|g" $TARGET_FILE
+          sed -i "s|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/flyway-migrations:.*|image: ghcr.io/${{ github.repository_owner }}/bookstore/scala/flyway-migrations:${{ github.sha }}|g" apps/bookstore-scala/order-service/migration-job.yml
+
+          # Git 커밋 및 동시성 충돌 방지 일반 푸시
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add $TARGET_FILE apps/bookstore-scala/order-service/migration-job.yml
+          git commit -m "Update Scala order Service & Flyway Migration image to ${{ github.sha }}"
+          
+          # 다른 서비스 커밋과의 충돌 방지를 위한 rebase 후 push
+          git pull --rebase origin main
+          git push origin main

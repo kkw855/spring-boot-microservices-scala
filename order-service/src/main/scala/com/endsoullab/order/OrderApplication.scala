@@ -1,4 +1,6 @@
-import cats.effect.*
+package com.endsoullab.order
+
+import cats.effect.{IO, IOApp, Resource}
 
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -9,10 +11,10 @@ import pureconfig.module.catseffect.syntax.*
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Server
 
-import com.endsoullab.config.AppConfig
-import com.endsoullab.modules.{Core, Database, HttpApi}
+import com.endsoullab.order.config.AppConfig
+import com.endsoullab.order.modules.{Core, Database, HttpApi}
 
-object Application extends IOApp.Simple {
+object OrderApplication extends IOApp.Simple {
 
   given logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
@@ -20,9 +22,9 @@ object Application extends IOApp.Simple {
     ConfigSource.default.loadF[IO, AppConfig]().flatMap {
       case AppConfig(emberConfig, postgresConfig) =>
         val appResource: Resource[IO, Server] = for {
-          xa <- Database.makePostgresResource(postgresConfig)
-          core <- Core(xa)
-          httpApi <- HttpApi(core)
+          _ <- Database.makePostgresResource(postgresConfig)
+          _ <- Core(/*xa*/)
+          httpApi <- HttpApi(/*core*/)
           server <- EmberServerBuilder
             .default[IO]
             .withHost(emberConfig.host)
