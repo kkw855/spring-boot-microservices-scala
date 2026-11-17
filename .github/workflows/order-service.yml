@@ -52,6 +52,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
 
       # 1️⃣-1 스칼라 API 애플리케이션 도커 이미지 빌드 (로컬 Docker daemon 로드)
       - name: Build Scala API Docker image
